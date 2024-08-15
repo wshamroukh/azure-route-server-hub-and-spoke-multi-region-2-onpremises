@@ -474,11 +474,11 @@ az vm create -n $onprem2_vm_name -g $rg -l $location2 --image $vm_image --nics "
 
 # local gateway1
 echo -e "\e[1;36mDeploying $onprem1_gw_vm_name local gateway resource...\e[0m"
-az network local-gateway create -g $rg -n $onprem1_gw_vm_name -l $location1 --gateway-ip-address $onprem1_gw_pubip --asn $onprem1_gw_asn --bgp-peering-address $onprem1_gw_ext_private_ip --local-address-prefixes $onprem1_vnet_address -o none
+az network local-gateway create -g $rg -n $onprem1_gw_vm_name -l $location1 --gateway-ip-address $onprem1_gw_pubip --asn $onprem1_gw_asn --bgp-peering-address $onprem1_gw_ext_private_ip --local-address-prefixes $onprem1_gw_ext_private_ip/32 -o none
 
 # local gateway2
 echo -e "\e[1;36mDeploying $onprem2_gw_vm_name local gateway resource...\e[0m"
-az network local-gateway create -g $rg -n $onprem2_gw_vm_name -l $location2 --gateway-ip-address $onprem2_gw_pubip --asn $onprem2_gw_asn --bgp-peering-address $onprem2_gw_ext_private_ip --local-address-prefixes $onprem2_vnet_address -o none
+az network local-gateway create -g $rg -n $onprem2_gw_vm_name -l $location2 --gateway-ip-address $onprem2_gw_pubip --asn $onprem2_gw_asn --bgp-peering-address $onprem2_gw_ext_private_ip --local-address-prefixes $onprem2_gw_ext_private_ip/32 -o none
 
 # onprem1 route table
 echo -e "\e[1;36mDeploying $onprem1_vnet_name-rt Route Table and attaching it to $onprem1_vm_subnet_name subnet...\e[0m"
