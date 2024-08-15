@@ -511,7 +511,6 @@ wait_until_finished $hub1_gw_id
 hub2_gw_id=$(az network vnet-gateway show -g $rg -n $hub2_gw_name --query id -o tsv)
 wait_until_finished $hub2_gw_id
 
-
 # Getting hub1 VPN GW details
 echo -e "\e[1;36mGetting $hub1_gw_name VPN Gateway details...\e[0m"
 hub1_gw_pubip1=$(az network vnet-gateway show -n $hub1_gw_name -g $rg --query 'bgpSettings.bgpPeeringAddresses[0].tunnelIpAddresses[0]' -o tsv) && echo $hub1_gw_name: $hub1_gw_pubip1
@@ -528,23 +527,16 @@ hub2_gw_bgp_ip1=$(az network vnet-gateway show -n $hub2_gw_name -g $rg --query '
 hub2_gw_bgp_ip2=$(az network vnet-gateway show -n $hub2_gw_name -g $rg --query 'bgpSettings.bgpPeeringAddresses[1].defaultBgpIpAddresses[0]' -o tsv) && echo $hub2_gw_name: $hub2_gw_bgp_ip2
 hub2_gw_asn=$(az network vnet-gateway show -n $hub2_gw_name -g $rg --query bgpSettings.asn -o tsv) && echo $hub2_gw_name: $hub2_gw_asn
 
-
-# # updating nva1 rt 
-# az network route-table route create -g $rg --route-table-name $hub1_nva_name-rt --name to-$onprem1_vnet_name --address-prefix $onprem1_vnet_address --next-hop-type VirtualAppliance --next-hop-ip-address $hub1_gw_bgp_ip1 -o none
-
-# # updating nva2 rt
-# az network route-table route create -g $rg --route-table-name $hub2_nva_name-rt --name to-$onprem2_vnet_name --address-prefix $onprem2_vnet_address --next-hop-type VirtualAppliance --next-hop-ip-address $hub2_gw_bgp_ip1 -o none
-
 # creating VPN connection between hub1 vpn gw and onprem1 gw
 echo -e "\e[1;36mCreating VPN Connection between Azure VPN Gateway $hub1_gw_name and Onprem Gateway $onprem1_gw_vm_name...\e[0m"
 az network vpn-connection create -g $rg -n $hub1_vnet_name-to-$onprem1_vnet_name -l $location1 --vnet-gateway1 $hub1_gw_name --local-gateway2 $onprem1_gw_vm_name --shared-key $psk --enable-bgp -o none
 
 # creating VPN connection between hub2 vpn gw and onprem2 gw
-echo -e "\e[1;36mCreating VPN Connection between Azure VPN Gateway $hub1_gw_name and Onprem Gateway $onprem2_gw_vm_name...\e[0m"
+echo -e "\e[1;36mCreating VPN Connection between Azure VPN Gateway $hub2_gw_name and Onprem Gateway $onprem2_gw_vm_name...\e[0m"
 az network vpn-connection create -g $rg -n $hub2_vnet_name-to-$onprem2_vnet_name -l $location2 --vnet-gateway1 $hub2_gw_name --local-gateway2 $onprem2_gw_vm_name --shared-key $psk --enable-bgp -o none
 
 #######################
-# OnPrem1 VPN Config   #
+# OnPrem1 VPN Config  #
 #######################
 echo -e "\e[1;36mCreating S2S/BGP VPN Config files for $onprem1_gw_vm_name Gateway VM...\e[0m"
 # ipsec.secrets
@@ -700,12 +692,10 @@ exit
 EOF
 ##### copy files to onprem gw
 echo -e "\e[1;36mCopying and applying S2S/BGP VPN Config files to $onprem1_gw_vm_name Gateway VM...\e[0m"
-#admin_username=$(whoami)
 scp -o StrictHostKeyChecking=no $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file $onprem1_gw_pubip:/home/$admin_username
-scp -o StrictHostKeyChecking=no .ssh/* $onprem1_gw_pubip:/home/$admin_username/.ssh/
+scp -o StrictHostKeyChecking=no /home/$admin_username/.ssh/* $onprem1_gw_pubip:/home/$admin_username/.ssh/
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo mv /home/$admin_username/frr.conf /etc/frr/frr.conf && sudo mv /home/$admin_username/ipsec.* /etc/ && sudo mv /home/$admin_username/ipsec-vti.sh /etc/strongswan.d/ && chmod +x /etc/strongswan.d/ipsec-vti.sh && sudo service frr restart && sudo systemctl restart ipsec"
-#sudo mv /home/$admin_username/frr.conf /etc/frr/frr.conf
 echo -e "\e[1;36mChecking the status of S2S VPN between $onprem1_gw_vm_name and $hub1_gw_name VPN Gateways...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo ipsec status"
 
@@ -715,7 +705,7 @@ rm $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file
 rm $cloudinit_file
 
 #######################
-# onprem2 VPN Config   #
+# onprem2 VPN Config  #
 #######################
 echo -e "\e[1;36mCreating S2S/BGP VPN Config files for $onprem2_gw_vm_name Gateway VM...\e[0m"
 # ipsec.secrets
@@ -872,28 +862,22 @@ EOF
 
 ##### copy files to onprem gw
 echo -e "\e[1;36mCopying and applying S2S/BGP VPN Config files to $onprem2_gw_vm_name Gateway VM...\e[0m"
-# admin_username=$(whoami)
 scp -o StrictHostKeyChecking=no $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file $onprem2_gw_pubip:/home/$admin_username
-scp -o StrictHostKeyChecking=no .ssh/* $onprem2_gw_pubip:/home/$admin_username/.ssh/
+scp -o StrictHostKeyChecking=no /home/$admin_username/.ssh/* $onprem2_gw_pubip:/home/$admin_username/.ssh/
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo mv /home/$admin_username/frr.conf /etc/frr/frr.conf && sudo mv /home/$admin_username/ipsec.* /etc/ && sudo mv /home/$admin_username/ipsec-vti.sh /etc/strongswan.d/ && chmod +x /etc/strongswan.d/ipsec-vti.sh &&  sudo service frr restart && sudo systemctl restart ipsec"
 echo -e "\e[1;36mChecking the status of S2S VPN between $onprem2_gw_vm_name and $hub1_gw_name VPN Gateways...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo ipsec status"
-#iptables -t nat -L
 # clean up config files
 rm $psk_file $ipsec_file $ipsec_vti_file $frr_conf_file
-
-
-
-
-
 
 #############
 # Diagnosis #
 #############
 
-# checking the bgp details on the NVA VM
+# checking the bgp details on the hub1 NVA VM
 echo -e "\e[1;36mChecking the BGP details on $hub1_nva_name VM...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_nva_pubip "sudo vtysh -c 'show bgp summary'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_nva_pubip "sudo vtysh -c 'show ip bgp'"
 echo -e "\e[1;36mChecking the received routes on $hub1_nva_name VM...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_nva_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_rs_ip1 received-routes'"
@@ -901,8 +885,19 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_nva_pubip "sudo vtysh 
 echo -e "\e[1;36mChecking the advertised routes to $hub1_nva_name VM...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_nva_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_rs_ip1 advertised-routes'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub1_nva_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_rs_ip2 advertised-routes'"
+# checking the bgp details on the hub2 NVA VM
+echo -e "\e[1;36mChecking the BGP details on $hub2_nva_name VM...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub2_nva_pubip "sudo vtysh -c 'show bgp summary'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub2_nva_pubip "sudo vtysh -c 'show ip bgp'"
+echo -e "\e[1;36mChecking the received routes on $hub2_nva_name VM...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub2_nva_pubip "sudo vtysh -c 'show ip bgp neighbors $hub2_rs_ip1 received-routes'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub2_nva_pubip "sudo vtysh -c 'show ip bgp neighbors $hub2_rs_ip2 received-routes'"
+echo -e "\e[1;36mChecking the advertised routes to $hub2_nva_name VM...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub2_nva_pubip "sudo vtysh -c 'show ip bgp neighbors $hub2_rs_ip1 advertised-routes'"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $hub2_nva_pubip "sudo vtysh -c 'show ip bgp neighbors $hub2_rs_ip2 advertised-routes'"
 # checking the bgp details on the onprem1 gw
 echo -e "\e[1;36mChecking the BGP details on $onprem1_gw_vm_name...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show bgp summary'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp'"
 echo -e "\e[1;36mChecking the received routes on $onprem1_gw_vm_name...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip1 received-routes'"
@@ -912,6 +907,7 @@ ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtys
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem1_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip2 advertised-routes'"
 # checking the bgp details on the onprem2 gw
 echo -e "\e[1;36mChecking the BGP details on $onprem2_gw_vm_name...\e[0m"
+ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show bgp summary'"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip bgp'"
 echo -e "\e[1;36mChecking the received routes on $onprem2_gw_vm_name...\e[0m"
 ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no $onprem2_gw_pubip "sudo vtysh -c 'show ip bgp neighbors $hub1_gw_bgp_ip1 received-routes'"
