@@ -962,4 +962,4 @@ echo -e "\e[1;34mTotal script runtime is (minutes:seconds): $minutes:$seconds\e[
 ##########
 #Clean up
 ##########
-# az group delete -n $rg -y --no-wait 
+# az group delete -n $rg -y --no-wait
