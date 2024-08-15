@@ -83,6 +83,9 @@ onprem2_vm_name='onprem2-vm'
 admin_username=$(whoami)
 psk='secret123'
 
+vm_size=Standard_B2ats_v2
+vm_image=$(az vm image list -l $location -p Canonical -s 22_04-lts --all --query "[?offer=='0001-com-ubuntu-server-jammy'].urn" -o tsv | sort -u | tail -n 1) && echo $vm_image
+
 default_address1='0.0.0.0/1'
 default_address2='128.0.0.0/1'
 network_address_summary='10.0.0.0/8'
@@ -165,7 +168,7 @@ echo -e "\e[1;36mDeploying $hub1_nva_name VM...\e[0m"
 az network public-ip create -n "$hub1_nva_name-pubip" -g $rg -l $location1 --allocation-method Static --sku Basic -o none
 az network nic create -n "$hub1_nva_name-ext-nic" -l $location1 --vnet-name $hub1_vnet_name -g $rg --subnet $hub1_nva_subnet_name --ip-forwarding true --public-ip-address "$hub1_nva_name-pubip" -o none
 az network nic create -n "$hub1_nva_name-int-nic" -l $location1 --vnet-name $hub1_vnet_name -g $rg --subnet $hub1_vms_subnet_name --ip-forwarding true -o none
-az vm create -n $hub1_nva_name -g $rg -l $location1 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$hub1_nva_name-ext-nic" "$hub1_nva_name-int-nic" --os-disk-name "$hub1_nva_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --custom-data $cloudinit_file --no-wait
+az vm create -n $hub1_nva_name -g $rg -l $location1 --image $vm_image --nics "$hub1_nva_name-ext-nic" "$hub1_nva_name-int-nic" --os-disk-name "$hub1_nva_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --custom-data $cloudinit_file --no-wait
 
 # hub1 nva details
 echo -e "\e[1;36mGetting $hub1_nva_name details...\e[0m"
@@ -180,7 +183,7 @@ echo -e "\e[1;36mDeploying $hub2_nva_name VM...\e[0m"
 az network public-ip create -n "$hub2_nva_name-pubip" -g $rg -l $location2 --allocation-method Static --sku Basic -o none
 az network nic create -n "$hub2_nva_name-ext-nic" -l $location2 --vnet-name $hub2_vnet_name -g $rg --subnet $hub2_nva_subnet_name --ip-forwarding true --public-ip-address "$hub2_nva_name-pubip" -o none
 az network nic create -n "$hub2_nva_name-int-nic" -l $location2 --vnet-name $hub2_vnet_name -g $rg --subnet $hub2_vms_subnet_name --ip-forwarding true -o none
-az vm create -n $hub2_nva_name -g $rg -l $location2 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$hub2_nva_name-ext-nic" "$hub2_nva_name-int-nic" --os-disk-name "$hub2_nva_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --custom-data $cloudinit_file --no-wait
+az vm create -n $hub2_nva_name -g $rg -l $location2 --image $vm_image --nics "$hub2_nva_name-ext-nic" "$hub2_nva_name-int-nic" --os-disk-name "$hub2_nva_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --custom-data $cloudinit_file --no-wait
 
 # hub2 nva details
 echo -e "\e[1;36mGetting $hub2_nva_name details...\e[0m"
@@ -405,7 +408,7 @@ echo -e "\e[1;36mDeploying $onprem1_gw_vm_name VM...\e[0m"
 az network public-ip create -n "$onprem1_gw_vm_name-pubip" -g $rg -l $location1 --allocation-method Static --sku Basic -o none
 az network nic create -n "$onprem1_gw_vm_name-ext-nic" -l $location1 --vnet-name $onprem1_vnet_name -g $rg --subnet $onprem1_gw_subnet_name --ip-forwarding true --public-ip-address "$onprem1_gw_vm_name-pubip" -o none
 az network nic create -n "$onprem1_gw_vm_name-int-nic" -l $location1 --vnet-name $onprem1_vnet_name -g $rg --subnet $onprem1_vm_subnet_name --ip-forwarding true -o none
-az vm create -n $onprem1_gw_vm_name -g $rg -l $location1 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$onprem1_gw_vm_name-ext-nic" "$onprem1_gw_vm_name-int-nic" --os-disk-name "$onprem1_gw_vm_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --custom-data $cloudinit_file  --no-wait
+az vm create -n $onprem1_gw_vm_name -g $rg -l $location1 --image $vm_image --nics "$onprem1_gw_vm_name-ext-nic" "$onprem1_gw_vm_name-int-nic" --os-disk-name "$onprem1_gw_vm_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --custom-data $cloudinit_file  --no-wait
 # onprem1 gw details
 onprem1_gw_pubip=$(az network public-ip show -g $rg -n $onprem1_gw_vm_name-pubip --query ipAddress -o tsv) && echo $onprem1_gw_vm_name: $onprem1_gw_pubip
 onprem1_gw_ext_private_ip=$(az network nic show -g $rg -n $onprem1_gw_vm_name-ext-nic --query ipConfigurations[].privateIpAddress -o tsv)  && echo $onprem1_gw_vm_name external NIC IP: $onprem1_gw_ext_private_ip
@@ -416,7 +419,7 @@ echo -e "\e[1;36mDeploying $onprem2_gw_vm_name VM...\e[0m"
 az network public-ip create -n "$onprem2_gw_vm_name-pubip" -g $rg -l $location2 --allocation-method Static --sku Basic -o none
 az network nic create -n "$onprem2_gw_vm_name-ext-nic" -l $location2 --vnet-name $onprem2_vnet_name -g $rg --subnet $onprem2_gw_subnet_name --ip-forwarding true --public-ip-address "$onprem2_gw_vm_name-pubip" -o none
 az network nic create -n "$onprem2_gw_vm_name-int-nic" -l $location2 --vnet-name $onprem2_vnet_name -g $rg --subnet $onprem2_vm_subnet_name --ip-forwarding true -o none
-az vm create -n $onprem2_gw_vm_name -g $rg -l $location2 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$onprem2_gw_vm_name-ext-nic" "$onprem2_gw_vm_name-int-nic" --os-disk-name "$onprem2_gw_vm_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --custom-data $cloudinit_file  --no-wait
+az vm create -n $onprem2_gw_vm_name -g $rg -l $location2 --image $vm_image --nics "$onprem2_gw_vm_name-ext-nic" "$onprem2_gw_vm_name-int-nic" --os-disk-name "$onprem2_gw_vm_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --custom-data $cloudinit_file  --no-wait
 # onprem2 gw details:
 onprem2_gw_pubip=$(az network public-ip show -g $rg -n $onprem2_gw_vm_name-pubip --query ipAddress -o tsv) && echo $onprem2_gw_vm_name: $onprem2_gw_pubip
 onprem2_gw_ext_private_ip=$(az network nic show -g $rg -n $onprem2_gw_vm_name-ext-nic --query ipConfigurations[].privateIpAddress -o tsv) && echo $onprem2_gw_vm_name external NIC IP: $onprem2_gw_ext_private_ip
@@ -425,42 +428,42 @@ onprem2_gw_ext_gw_ip=$(first_ip $onprem2_gw_subnet_address) && echo $onprem2_gw_
 # hub1 vm
 echo -e "\e[1;36mDeploying $hub1_vm_name VM...\e[0m"
 az network nic create -n "$hub1_vm_name-nic" -l $location1 --vnet-name $hub1_vnet_name -g $rg --subnet $hub1_vms_subnet_name -o none
-az vm create -n $hub1_vm_name -g $rg -l $location1 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$hub1_vm_name-nic" --os-disk-name "$hub1_vm_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --no-wait
+az vm create -n $hub1_vm_name -g $rg -l $location1 --image $vm_image --nics "$hub1_vm_name-nic" --os-disk-name "$hub1_vm_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 
 # hub2 vm
 echo -e "\e[1;36mDeploying $hub2_vm_name VM...\e[0m"
 az network nic create -n "$hub2_vm_name-nic" -l $location2 --vnet-name $hub2_vnet_name -g $rg --subnet $hub2_vms_subnet_name -o none
-az vm create -n $hub2_vm_name -g $rg -l $location2 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$hub2_vm_name-nic" --os-disk-name "$hub2_vm_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --no-wait
+az vm create -n $hub2_vm_name -g $rg -l $location2 --image $vm_image --nics "$hub2_vm_name-nic" --os-disk-name "$hub2_vm_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 
 # spoke11 vm
 echo -e "\e[1;36mDeploying $spoke11_vm_name VM...\e[0m"
 az network nic create -n "$spoke11_vm_name-nic" -l $location1 --vnet-name $spoke11_vnet_name -g $rg --subnet $spoke11_subnet_name -o none
-az vm create -n $spoke11_vm_name -g $rg -l $location1 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$spoke11_vm_name-nic" --os-disk-name "$spoke11_vm_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --no-wait
+az vm create -n $spoke11_vm_name -g $rg -l $location1 --image $vm_image --nics "$spoke11_vm_name-nic" --os-disk-name "$spoke11_vm_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 
 # spoke12 vm
 echo -e "\e[1;36mDeploying $spoke12_vm_name VM...\e[0m"
 az network nic create -n "$spoke12_vm_name-nic" -l $location1 --vnet-name $spoke12_vnet_name -g $rg --subnet $spoke12_subnet_name -o none
-az vm create -n $spoke12_vm_name -g $rg -l $location1 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$spoke12_vm_name-nic" --os-disk-name "$spoke12_vm_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --no-wait
+az vm create -n $spoke12_vm_name -g $rg -l $location1 --image $vm_image --nics "$spoke12_vm_name-nic" --os-disk-name "$spoke12_vm_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 
 # spoke21 vm
 echo -e "\e[1;36mDeploying $spoke21_vm_name VM...\e[0m"
 az network nic create -n "$spoke21_vm_name-nic" -l $location2 --vnet-name $spoke21_vnet_name -g $rg --subnet $spoke21_subnet_name -o none
-az vm create -n $spoke21_vm_name -g $rg -l $location2 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$spoke21_vm_name-nic" --os-disk-name "$spoke21_vm_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --no-wait
+az vm create -n $spoke21_vm_name -g $rg -l $location2 --image $vm_image --nics "$spoke21_vm_name-nic" --os-disk-name "$spoke21_vm_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 
 # spoke22 vm
 echo -e "\e[1;36mDeploying $spoke22_vm_name VM...\e[0m"
 az network nic create -n "$spoke22_vm_name-nic" -l $location2 --vnet-name $spoke22_vnet_name -g $rg --subnet $spoke22_subnet_name -o none
-az vm create -n $spoke22_vm_name -g $rg -l $location2 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$spoke22_vm_name-nic" --os-disk-name "$spoke22_vm_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --no-wait
+az vm create -n $spoke22_vm_name -g $rg -l $location2 --image $vm_image --nics "$spoke22_vm_name-nic" --os-disk-name "$spoke22_vm_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 
 # onprem1 vm
 echo -e "\e[1;36mDeploying $onprem1_vm_name VM...\e[0m"
 az network nic create -n "$onprem1_vm_name-nic" -l $location1 --vnet-name $onprem1_vnet_name -g $rg --subnet $onprem1_vm_subnet_name -o none
-az vm create -n $onprem1_vm_name -g $rg -l $location1 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$onprem1_vm_name-nic" --os-disk-name "$onprem1_vm_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --no-wait
+az vm create -n $onprem1_vm_name -g $rg -l $location1 --image $vm_image --nics "$onprem1_vm_name-nic" --os-disk-name "$onprem1_vm_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 
 # onprem2 vm
 echo -e "\e[1;36mDeploying $onprem2_vm_name VM...\e[0m"
 az network nic create -n "$onprem2_vm_name-nic" -l $location2 --vnet-name $onprem2_vnet_name -g $rg --subnet $onprem2_vm_subnet_name -o none
-az vm create -n $onprem2_vm_name -g $rg -l $location2 --image Canonical:0001-com-ubuntu-server-focal:20_04-lts:20.04.202201310 --nics "$onprem2_vm_name-nic" --os-disk-name "$onprem2_vm_name-disk" --size Standard_B1s --admin-username $admin_username --generate-ssh-keys --no-wait
+az vm create -n $onprem2_vm_name -g $rg -l $location2 --image $vm_image --nics "$onprem2_vm_name-nic" --os-disk-name "$onprem2_vm_name-disk" --size $vm_size --admin-username $admin_username --generate-ssh-keys --no-wait
 
 # local gateway1
 echo -e "\e[1;36mDeploying $onprem1_gw_vm_name local gateway resource...\e[0m"
