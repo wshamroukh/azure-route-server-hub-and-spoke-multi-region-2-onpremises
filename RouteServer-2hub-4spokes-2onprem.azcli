@@ -944,16 +944,26 @@ az network vnet-gateway list-learned-routes -g $rg -n $hub2_gw_name -o table
 echo -e "\e[1;36mListing advertised routes from $hub1_gw_name VPN Gateway to $onprem2_gw_vm_name...\e[0m"
 az network vnet-gateway list-advertised-routes -g $rg -n $hub1_gw_name --peer $onprem2_gw_ext_private_ip -o table
 
-# effective routes on spoke vms
+# effective routes on vms
 # spoke11 vm
 echo -e "\e[1;36mListing effective routes on $spoke11_vm_name NIC ...\e[0m"
 az network nic show-effective-route-table -g $rg -n $spoke11_vm_name-nic -o table
 # spoke12 vm
 echo -e "\e[1;36mListing effective routes on $spoke12_vm_name NIC ...\e[0m"
 az network nic show-effective-route-table -g $rg -n $spoke12_vm_name-nic -o table
-# hub vm
+# hub1 vm
 echo -e "\e[1;36mListing effective routes on $hub1_vm_name NIC ...\e[0m"
 az network nic show-effective-route-table -g $rg -n $hub1_vm_name-nic -o table
+
+# spoke21 vm
+echo -e "\e[1;36mListing effective routes on $spoke21_vm_name NIC ...\e[0m"
+az network nic show-effective-route-table -g $rg -n $spoke21_vm_name-nic -o table
+# spoke22 vm
+echo -e "\e[1;36mListing effective routes on $spoke22_vm_name NIC ...\e[0m"
+az network nic show-effective-route-table -g $rg -n $spoke22_vm_name-nic -o table
+# hub2 vm
+echo -e "\e[1;36mListing effective routes on $hub1_vm_name NIC ...\e[0m"
+az network nic show-effective-route-table -g $rg -n $hub2_vm_name-nic -o table
 
 script_run_time=$(expr `date +%s` - $script_start_time)
 ((minutes=${script_run_time}/60))
