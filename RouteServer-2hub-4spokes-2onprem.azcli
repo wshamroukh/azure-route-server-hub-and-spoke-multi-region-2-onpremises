@@ -219,6 +219,9 @@ rs_subnet_id=$(az network vnet subnet show -g $rg -n RouteServerSubnet --vnet-na
 az network routeserver create -g $rg -n $hub1_rs_name -l $location1 --hosted-subnet $rs_subnet_id --public-ip-address $hub1_rs_name-pubip --verbose -o none
 echo -e "\e[1;36mEnabling Branch-to-Branch setting on $hub1_rs_name Azure Route Server...\e[0m"
 az network routeserver update -n $hub1_rs_name -g $rg --allow-b2b-traffic true -o none
+# Set Routing Preference to VpnGateway
+echo -e "\e[1;36mSet Routing Preference to VpnGateway on $hub_rs_name Azure Route Server...\e[0m"
+az network routeserver update -n $hub1_rs_name -g $rg --hub-routing-preference VpnGateway -o none
 # hub1 route server details
 echo -e "\e[1;36mGetting $hub1_rs_name Route Sever details...\e[0m"
 hub1_rs_ip1=$(az network routeserver show -g $rg -n $hub1_rs_name --query virtualRouterIps[0] -o tsv) && echo $hub1_rs_name: $hub1_rs_ip1
@@ -236,6 +239,9 @@ rs_subnet_id=$(az network vnet subnet show -g $rg -n RouteServerSubnet --vnet-na
 az network routeserver create -g $rg -n $hub2_rs_name -l $location2 --hosted-subnet $rs_subnet_id --public-ip-address $hub2_rs_name-pubip --verbose -o none
 echo -e "\e[1;36mEnabling Branch-to-Branch setting on $hub2_rs_name Azure Route Server...\e[0m"
 az network routeserver update -n $hub2_rs_name -g $rg --allow-b2b-traffic true -o none
+# Set Routing Preference to VpnGateway
+echo -e "\e[1;36mSet Routing Preference to VpnGateway on $hub_rs_name Azure Route Server...\e[0m"
+az network routeserver update -n $hub2_rs_name -g $rg --hub-routing-preference VpnGateway -o none
 # hub2 route server details
 echo -e "\e[1;36mGetting $hub2_rs_name Route Sever details...\e[0m"
 hub2_rs_ip1=$(az network routeserver show -g $rg -n $hub2_rs_name --query virtualRouterIps[0] -o tsv) && echo $hub2_rs_name: $hub2_rs_ip1
