@@ -401,13 +401,13 @@ rm $frr_conf_file
 
 # Hub1 VPN GW
 echo -e "\e[1;36mDeploying $hub1_gw_name VPN Gateway...\e[0m"
-az network public-ip create -g $rg -n $hub1_gw_name-pubip1 -l $location1 --allocation-method Dynamic -o none
-az network public-ip create -g $rg -n $hub1_gw_name-pubip2 -l $location1 --allocation-method Dynamic -o none
+az network public-ip create -g $rg -n $hub1_gw_name-pubip1 -l $location1 --allocation-method Static -o none
+az network public-ip create -g $rg -n $hub1_gw_name-pubip2 -l $location1 --allocation-method Static -o none
 az network vnet-gateway create -g $rg -n $hub1_gw_name -l $location1 --public-ip-addresses $hub1_gw_name-pubip1 $hub1_gw_name-pubip2 --vnet $hub1_vnet_name --asn $hub1_gw_asn --sku VpnGw1 --gateway-type Vpn --vpn-type RouteBased --no-wait
 # hub2 VPN GW
 echo -e "\e[1;36mDeploying $hub2_gw_name VPN Gateway...\e[0m"
-az network public-ip create -g $rg -n $hub2_gw_name-pubip1 -l $location2 --allocation-method Dynamic -o none
-az network public-ip create -g $rg -n $hub2_gw_name-pubip2 -l $location2 --allocation-method Dynamic -o none
+az network public-ip create -g $rg -n $hub2_gw_name-pubip1 -l $location2 --allocation-method Static -o none
+az network public-ip create -g $rg -n $hub2_gw_name-pubip2 -l $location2 --allocation-method Static -o none
 az network vnet-gateway create -g $rg -n $hub2_gw_name -l $location2 --public-ip-addresses $hub2_gw_name-pubip1 $hub2_gw_name-pubip2 --vnet $hub2_vnet_name --asn $hub2_gw_asn --sku VpnGw1 --gateway-type Vpn --vpn-type RouteBased --no-wait
 
 # onprem1 gw
