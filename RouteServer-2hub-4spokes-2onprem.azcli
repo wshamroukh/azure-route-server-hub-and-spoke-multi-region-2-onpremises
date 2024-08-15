@@ -297,7 +297,7 @@ echo -e "\e[1;36mCreating BGP and S2S VPN Config files for $hub1_nva_name VM...\
 # frr.donf
 frr_conf_file=~/frr.conf
 cat <<EOF > $frr_conf_file
-frr version 8.2
+frr version 10.1
 frr defaults traditional
 hostname $hub1_nva_name
 log syslog informational
@@ -352,7 +352,7 @@ echo -e "\e[1;36mCreating BGP and S2S VPN Config files for $hub2_nva_name VM...\
 # # frr.donf
 frr_conf_file=~/frr.conf
 cat <<EOF > $frr_conf_file
-frr version 8.2
+frr version 10.1
 frr defaults traditional
 hostname $hub2_nva_name
 log syslog informational
